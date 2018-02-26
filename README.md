@@ -11,7 +11,6 @@ Yaguang Li, Rose Yu, Cyrus Shahabi, Yan Liu, [Diffusion Convolutional Recurrent 
 - numpy>=1.12.1
 - pandas==0.19.2
 - tensorflow>=1.3.0
-- peewee>=2.8.8
 - python 2.7
 
 Dependency can be installed using the following command:
@@ -54,10 +53,10 @@ More details are being added ...
 
 If you find this repository useful in your research, please cite the following paper:
 ```
-@article{li2017dcrnn_traffic,
+@inproceedings{li2017dcrnn_traffic,
   title={Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting},
   author={Li, Yaguang and Yu, Rose and Shahabi, Cyrus and Liu, Yan},
-  journal={arXiv preprint arXiv:1707.01926},
-  year={2017}
+  booktitle={International Conference on Learning Representations},
+  year={2018}
 }
 ```
