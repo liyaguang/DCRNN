@@ -1,8 +1,11 @@
 # Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting
+
+[![Dependency Status](https://beta.gemnasium.com/badges/github.com/liyaguang/DCRNN.svg)](https://beta.gemnasium.com/projects/github.com/liyaguang/DCRNN)
+
 ![Diffusion Convolutional Recurrent Neural Network](figures/model_architecture.jpg "Model Architecture")
 
 This is a TensorFlow implementation of Diffusion Convolutional Recurrent Neural Network in the following paper: \
-Yaguang Li, Rose Yu, Cyrus Shahabi, Yan Liu, [Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting](https://arxiv.org/abs/1707.01926).
+Yaguang Li, Rose Yu, Cyrus Shahabi, Yan Liu, [Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting](https://arxiv.org/abs/1707.01926), ICLR 2018.
 
 
 ## Requirements
