@@ -25,7 +25,7 @@ pip install -r requirements.txt
 ## Traffic Data
 The traffic data file for Los Angeles is available [here](https://drive.google.com/open?id=1tjf5aXCgUoimvADyxKqb-YUlxP8O46pb), and should be
 put into the `data/` folder.
-
+Besides, the locations of sensors are available at [data/sensor_graph/graph_sensor_locations.csv](https://github.com/liyaguang/DCRNN/blob/master/data/sensor_graph/graph_sensor_locations.csv).
 
 ## Graph Construction
  As the currently implementation is based on pre-calculated road network distances between sensors, it currently only
