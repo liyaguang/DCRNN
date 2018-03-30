@@ -56,7 +56,7 @@ More details are being added ...
 
 If you find this repository useful in your research, please cite the following paper:
 ```
-@inproceedings{li2017dcrnn_traffic,
+@inproceedings{li2018dcrnn_traffic,
   title={Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting},
   author={Li, Yaguang and Yu, Rose and Shahabi, Cyrus and Liu, Yan},
   booktitle={International Conference on Learning Representations},
