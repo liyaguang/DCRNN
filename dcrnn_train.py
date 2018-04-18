@@ -2,10 +2,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import json
-
 import pandas as pd
 import tensorflow as tf
+import yaml
+
 
 from lib import log_helper
 from lib.dcrnn_utils import load_graph_data
@@ -47,7 +47,7 @@ flags.DEFINE_integer('verbose', -1, '1: to log individual sensor information.')
 def main():
     # Reads graph data.
     with open(FLAGS.config_filename) as f:
-        supervisor_config = json.load(f)
+        supervisor_config = yaml.load(f)
         logger = log_helper.get_logger(supervisor_config.get('base_dir'), 'info.log')
         logger.info('Loading graph from: ' + FLAGS.graph_pkl_filename)
         sensor_ids, sensor_id_to_ind, adj_mx = load_graph_data(FLAGS.graph_pkl_filename)

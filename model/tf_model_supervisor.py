@@ -2,13 +2,13 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import json
 import math
 import numpy as np
 import os
 import sys
 import tensorflow as tf
 import time
+import yaml
 
 from lib import log_helper
 from lib import metrics
@@ -188,7 +188,7 @@ class TFModelSupervisor(object):
 
     @staticmethod
     def _get_config_filename(epoch):
-        return 'config_%02d.json' % epoch
+        return 'config_%02d.yaml' % epoch
 
     def restore(self, sess, config):
         """
@@ -212,7 +212,7 @@ class TFModelSupervisor(object):
         config['model_filename'] = saver.save(sess, os.path.join(self._log_dir, 'models-%.4f' % val_loss),
                                               global_step=global_step, write_meta_graph=False)
         with open(os.path.join(self._log_dir, config_filename), 'w') as f:
-            json.dump(config, f)
+            yaml.dump(config, f)
         return config['model_filename']
 
     def test_and_write_result(self, sess, global_step, **kwargs):

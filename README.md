@@ -14,6 +14,7 @@ Yaguang Li, Rose Yu, Cyrus Shahabi, Yan Liu, [Diffusion Convolutional Recurrent 
 - numpy>=1.12.1
 - pandas>=0.19.2
 - tensorflow>=1.3.0
+- pyaml
 
 
 Dependency can be installed using the following command:
