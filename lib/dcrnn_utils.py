@@ -4,11 +4,11 @@ import scipy.sparse as sp
 
 from scipy.sparse import linalg
 from lib.tf_utils import sparse_matrix_to_tf_sparse_tensor
+from lib.utils import load_pickle
 
 
 def load_graph_data(pkl_filename):
-    with open(pkl_filename) as f:
-        sensor_ids, sensor_id_to_ind, adj_mx = pickle.load(f)
+    sensor_ids, sensor_id_to_ind, adj_mx = load_pickle(pkl_filename)
     return sensor_ids, sensor_id_to_ind, adj_mx
 
 

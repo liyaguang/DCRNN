@@ -1,6 +1,7 @@
 import datetime
 import numpy as np
 import pandas as pd
+import pickle
 
 
 class StandardScaler:
@@ -154,6 +155,18 @@ def generate_graph_seq2seq_io_data_with_time(df, batch_size, seq_len, horizon, n
     y = np.stack(y, axis=0)
     return x, y
 
+
+def load_pickle(pickle_file):
+    try:
+        with open(pickle_file, 'rb') as f:
+            pickle_data = pickle.load(f)
+    except UnicodeDecodeError as e:
+        with open(pickle_file, 'rb') as f:
+            pickle_data = pickle.load(f, encoding='latin1')
+    except Exception as e:
+        print('Unable to load data ', pickle_file, ':', e)
+        raise
+    return pickle_data
 
 def round_down(num, divisor):
     return num - (num % divisor)

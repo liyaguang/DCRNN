@@ -14,7 +14,7 @@ Yaguang Li, Rose Yu, Cyrus Shahabi, Yan Liu, [Diffusion Convolutional Recurrent 
 - numpy>=1.12.1
 - pandas>=0.19.2
 - tensorflow>=1.3.0
-- python 2.7
+
 
 Dependency can be installed using the following command:
 ```bash
@@ -38,7 +38,7 @@ python gen_adj_mx.py  --sensor_ids_filename=data/sensor_graph/graph_sensor_ids.t
 
 ## Train the Model
 ```bash
-python dcrnn_train.py --config_filename=data/model/dcrnn_config.json
+python dcrnn_train.py --config_filename=data/model/dcrnn_config.yaml
 ```
 
 
@@ -59,7 +59,7 @@ If you find this repository useful in your research, please cite the following p
 @inproceedings{li2018dcrnn_traffic,
   title={Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting},
   author={Li, Yaguang and Yu, Rose and Shahabi, Cyrus and Liu, Yan},
-  booktitle={International Conference on Learning Representations},
+  booktitle={International Conference on Learning Representations (ICLR '18)},
   year={2018}
 }
 ```
