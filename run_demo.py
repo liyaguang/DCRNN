@@ -14,11 +14,12 @@ flags.DEFINE_bool('use_cpu_only', False, 'Whether to run tensorflow on cpu.')
 
 
 def run_dcrnn(traffic_reading_df):
-    run_id = 'dcrnn_DR_2_h_12_64-64_lr_0.01_bs_64_d_0.00_sl_12_MAE_1207002222'
+    # run_id = 'dcrnn_DR_2_h_12_64-64_lr_0.01_bs_64_d_0.00_sl_12_MAE_1207002222'
+    run_id = 'dcrnn_DR_2_h_12_64-64_lr_0.01_bs_64_d_0.00_sl_12_MAE_0606021843'
 
     log_dir = os.path.join('data/model', run_id)
 
-    config_filename = 'config_100.yaml'
+    config_filename = 'config_75.yaml'
     graph_pkl_filename = 'data/sensor_graph/adj_mx.pkl'
     with open(os.path.join(log_dir, config_filename)) as f:
         config = yaml.load(f)
