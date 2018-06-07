@@ -44,6 +44,16 @@ class IODataPreparationTest(unittest.TestCase):
         self.assertTupleEqual(xs.shape, (3, 2, 9))
         self.assertTupleEqual(ys.shape, (3, 2, 6))
 
+    def test_generate_graph_seq2seq_io_data_with_time(self):
+        data = np.array([
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+        ], dtype=np.float32).T
+        df = pd.DataFrame(data, index=pd.date_range('2017-10-18', '2017-10-19 23:59', freq='3h'))
+        xs, ys = utils.generate_graph_seq2seq_io_data_with_time2(df, batch_size=2, seq_len=3, horizon=3, num_nodes=2)
+        self.assertTupleEqual(xs.shape, (5, 2, 3, 2, 2))
+        self.assertTupleEqual(ys.shape, (5, 2, 3, 2, 2))
+
 
 class StandardScalerTest(unittest.TestCase):
     def test_transform(self):
