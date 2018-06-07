@@ -22,6 +22,7 @@ method_type: GCRNN
 min_learning_rate: 2.0e-06
 null_val: 0
 num_rnn_layers: 2
+output_dim: 1
 patience: 50
 rnn_units: 16
 seq_len: 3

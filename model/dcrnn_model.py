@@ -28,12 +28,13 @@ class DCRNNModel(TFModel):
         rnn_units = int(config.get('rnn_units'))
         seq_len = int(config.get('seq_len'))
         use_curriculum_learning = bool(config.get('use_curriculum_learning', False))
-
-        assert input_dim == output_dim, 'input_dim: %d != output_dim: %d' % (input_dim, output_dim)
+        aux_dim = input_dim - output_dim
+        # assert input_dim == output_dim, 'input_dim: %d != output_dim: %d' % (input_dim, output_dim)
         # Input (batch_size, timesteps, num_sensor, input_dim)
         self._inputs = tf.placeholder(tf.float32, shape=(batch_size, seq_len, num_nodes, input_dim), name='inputs')
-        # Labels: (batch_size, timesteps, num_sensor, output_dim)
-        self._labels = tf.placeholder(tf.float32, shape=(batch_size, horizon, num_nodes, output_dim), name='labels')
+        # Labels: (batch_size, timesteps, num_sensor, input_dim), same format with input except the temporal dimension.
+        self._labels = tf.placeholder(tf.float32, shape=(batch_size, horizon, num_nodes, input_dim), name='labels')
+
         GO_SYMBOL = tf.zeros(shape=(batch_size, num_nodes * input_dim))
 
         cell = DCGRUCell(rnn_units, adj_mx, max_diffusion_step=max_diffusion_step, num_nodes=num_nodes,
@@ -49,20 +50,30 @@ class DCRNNModel(TFModel):
         # Outputs: (batch_size, timesteps, num_nodes, output_dim)
         with tf.variable_scope('DCRNN_SEQ'):
             inputs = tf.unstack(tf.reshape(self._inputs, (batch_size, seq_len, num_nodes * input_dim)), axis=1)
-            labels = tf.unstack(tf.reshape(self._labels, (batch_size, horizon, num_nodes * output_dim)), axis=1)
+            labels = tf.unstack(
+                tf.reshape(self._labels[..., :output_dim], (batch_size, horizon, num_nodes * output_dim)), axis=1)
+            if aux_dim > 0:
+                aux_info = tf.unstack(self._labels[..., output_dim:], axis=1)
+                aux_info.insert(0, None)
             labels.insert(0, GO_SYMBOL)
-            loop_function = None
-            if is_training:
-                if use_curriculum_learning:
-                    def loop_function(prev, i):
+
+            def loop_function(prev, i):
+                if is_training:
+                    # Return either the model's prediction or the previous ground truth in training.
+                    if use_curriculum_learning:
                         c = tf.random_uniform((), minval=0, maxval=1.)
                         threshold = self._compute_sampling_threshold(global_step, cl_decay_steps)
                         result = tf.cond(tf.less(c, threshold), lambda: labels[i], lambda: prev)
-                        return result
-            else:
-                # Return the output of the model.
-                def loop_function(prev, _):
-                    return prev
+                    else:
+                        result = labels[i]
+                else:
+                    # Return the prediction of the model in testing.
+                    result = prev
+                if aux_dim > 0:
+                    result = tf.reshape(result, (batch_size, num_nodes, output_dim))
+                    result = tf.concat([result, aux_info[i]], axis=-1)
+                    result = tf.reshape(result, (batch_size, num_nodes * input_dim))
+                return result
 
             _, enc_state = tf.contrib.rnn.static_rnn(encoding_cells, inputs, dtype=tf.float32)
             outputs, final_state = legacy_seq2seq.rnn_decoder(labels, enc_state, decoding_cells,
@@ -72,20 +83,21 @@ class DCRNNModel(TFModel):
         outputs = tf.stack(outputs[:-1], axis=1)
         self._outputs = tf.reshape(outputs, (batch_size, horizon, num_nodes, output_dim), name='outputs')
 
-        preds = self._outputs[..., 0]
-        labels = self._labels[..., 0]
+        # preds = self._outputs[..., 0]
+        preds = self._outputs
+        labels = self._labels[..., :output_dim]
 
         null_val = config.get('null_val', 0.)
         self._mae = masked_mae_loss(self._scaler, null_val)(preds=preds, labels=labels)
 
         if loss_func == 'MSE':
-            self._loss = masked_mse_loss(self._scaler, null_val)(preds=self._outputs, labels=self._labels)
+            self._loss = masked_mse_loss(self._scaler, null_val)(preds=preds, labels=labels)
         elif loss_func == 'MAE':
-            self._loss = masked_mae_loss(self._scaler, null_val)(preds=self._outputs, labels=self._labels)
+            self._loss = masked_mae_loss(self._scaler, null_val)(preds=preds, labels=labels)
         elif loss_func == 'RMSE':
-            self._loss = masked_rmse_loss(self._scaler, null_val)(preds=self._outputs, labels=self._labels)
+            self._loss = masked_rmse_loss(self._scaler, null_val)(preds=preds, labels=labels)
         else:
-            self._loss = masked_mse_loss(self._scaler, null_val)(preds=self._outputs, labels=self._labels)
+            self._loss = masked_mse_loss(self._scaler, null_val)(preds=preds, labels=labels)
         if is_training:
             optimizer = tf.train.AdamOptimizer(self._lr)
             tvars = tf.trainable_variables()

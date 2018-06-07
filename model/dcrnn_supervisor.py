@@ -61,7 +61,7 @@ class DCRNNSupervisor(TFModelSupervisor):
         # Builds the model.
         input_dim = self._x_train.shape[-1]
         num_nodes = self._df_test.shape[-1]
-        output_dim = self._y_train.shape[-1]
+        output_dim = self._get_config('output_dim')
         test_batch_size = self._get_config('test_batch_size')
         train_config = dict(self._config)
         train_config.update({

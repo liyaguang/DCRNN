@@ -21,6 +21,7 @@ max_grad_norm: 5
 min_learning_rate: 2.0e-06
 null_val: 0
 num_rnn_layers: 2
+output_dim: 1
 patience: 50
 rnn_units: 64
 seq_len: 12
