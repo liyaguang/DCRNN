@@ -2,7 +2,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import logging
 import numpy as np
 import os
 import sys
@@ -10,7 +9,7 @@ import tensorflow as tf
 import time
 import yaml
 
-from lib import utils, log_helper, metrics
+from lib import utils, metrics
 from lib.utils import StandardScaler, DataLoader
 
 from model.dcrnn_model import DCRNNModel
@@ -30,12 +29,15 @@ class DCRNNSupervisor(object):
 
         # logging.
         self._log_dir = self._get_log_dir(kwargs)
-        log_helper.config_logging(log_dir=self.log_dir, log_filename='info.log', level=logging.DEBUG)
+        self._logger = utils.get_logger(self.log_dir, __name__, 'info.log')
         self._writer = tf.summary.FileWriter(self._log_dir)
-        logging.info(kwargs)
+        self._logger.info(kwargs)
 
         # Data preparation
         self._data = self._prepare_data(**self._data_kwargs)
+        for k, v in self._data.items():
+            if hasattr(v, 'shape'):
+                self._logger.info((k, v.shape))
 
         # Build models.
         scaler = self._data['scaler']
@@ -61,9 +63,9 @@ class DCRNNSupervisor(object):
 
         # Log model statistics.
         total_trainable_parameter = utils.get_total_trainable_parameter_size()
-        logging.info('Total number of trainable parameters: %d' % total_trainable_parameter)
+        self._logger.info('Total number of trainable parameters: %d' % total_trainable_parameter)
         for var in tf.global_variables():
-            logging.info('%s, %s' % (var.name, var.get_shape()))
+            self._logger.info('%s, %s' % (var.name, var.get_shape()))
 
     @staticmethod
     def _get_log_dir(kwargs):
@@ -105,8 +107,6 @@ class DCRNNSupervisor(object):
         for category in ['train', 'val', 'test']:
             data['x_' + category][..., 0] = scaler.transform(data['x_' + category][..., 0])
             data['y_' + category][..., 0] = scaler.transform(data['y_' + category][..., 0])
-        for k, v in data.items():
-            logging.info((k, v.shape))
         data['train_loader'] = DataLoader(data['x_train'], data['y_train'], kwargs['batch_size'], shuffle=True)
         data['val_loader'] = DataLoader(data['x_val'], data['y_val'], kwargs['val_batch_size'], shuffle=False)
         data['test_loader'] = DataLoader(data['x_test'], data['y_test'], kwargs['test_batch_size'], shuffle=False)
@@ -146,7 +146,7 @@ class DCRNNSupervisor(object):
                                                                   writer=self._writer)
             train_loss, train_mae = train_results['loss'], train_results['mae']
             if train_loss > 1e5:
-                logging.warning('Gradient explosion detected. Ending...')
+                self._logger.warning('Gradient explosion detected. Ending...')
                 break
 
             global_step = sess.run(tf.train.get_or_create_global_step())
@@ -157,25 +157,25 @@ class DCRNNSupervisor(object):
             val_loss, val_mae = val_results['loss'], val_results['mae']
 
             utils.add_simple_summary(self._writer,
-                                        ['loss/train_loss', 'metric/train_mae', 'loss/val_loss', 'metric/val_mae'],
-                                        [train_loss, train_mae, val_loss, val_mae], global_step=global_step)
+                                     ['loss/train_loss', 'metric/train_mae', 'loss/val_loss', 'metric/val_mae'],
+                                     [train_loss, train_mae, val_loss, val_mae], global_step=global_step)
             end_time = time.time()
             message = 'Epoch [{}] ({}) train_mae: {:.4f}, val_mae: {:.4f} lr:{:.6f} {:.1f}s'.format(
                 self._epoch, global_step, train_mae, val_mae, new_lr, (end_time - start_time))
-            logging.info(message)
+            self._logger.info(message)
             if self._epoch % test_every_n_epochs == test_every_n_epochs - 1:
                 self.test_and_write_result(sess, global_step)
             if val_loss <= min_val_loss:
                 wait = 0
                 if save_model > 0:
                     model_filename = self.save_model(sess, saver, val_loss)
-                logging.info(
+                self._logger.info(
                     'Val loss decrease from %.4f to %.4f, saving to %s' % (min_val_loss, val_loss, model_filename))
                 min_val_loss = val_loss
             else:
                 wait += 1
                 if wait > patience:
-                    logging.warning('Early stopping at epoch: %d' % self._epoch)
+                    self._logger.warning('Early stopping at epoch: %d' % self._epoch)
                     break
 
             history.append(val_mae)
@@ -207,16 +207,16 @@ class DCRNNSupervisor(object):
             mae = metrics.masked_mae_np(y_pred, y_truth, null_val=0)
             mape = metrics.masked_mape_np(y_pred, y_truth, null_val=0)
             rmse = metrics.masked_rmse_np(y_pred, y_truth, null_val=0)
-            logging.info(
+            self._logger.info(
                 "Horizon {:02d}, MAE: {:.2f}, MAPE: {:.4f}, RMSE: {:.2f}".format(
                     horizon_i + 1, mae, mape, rmse
                 )
             )
             utils.add_simple_summary(self._writer,
-                                        ['%s_%d' % (item, horizon_i + 1) for item in
-                                         ['metric/rmse', 'metric/mape', 'metric/mae']],
-                                        [rmse, mape, mae],
-                                        global_step=global_step)
+                                     ['%s_%d' % (item, horizon_i + 1) for item in
+                                      ['metric/rmse', 'metric/mape', 'metric/mae']],
+                                     [rmse, mape, mae],
+                                     global_step=global_step)
         return y_preds
 
     @staticmethod
