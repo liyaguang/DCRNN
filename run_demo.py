@@ -1,6 +1,6 @@
 import argparse
+import numpy as np
 import os
-import pandas as pd
 import sys
 import tensorflow as tf
 import yaml
@@ -21,21 +21,17 @@ def run_dcrnn(args):
     with tf.Session(config=tf_config) as sess:
         supervisor = DCRNNSupervisor(adj_mx=adj_mx, **config)
         supervisor.restore(sess, config=config)
-        df_preds = supervisor.test_and_write_result(sess, config['global_step'])
-        # TODO (yaguang): save this file to the npz file.
-        for horizon_i in df_preds:
-            df_pred = df_preds[horizon_i]
-            filename = os.path.join('data/results/', 'dcrnn_prediction_%d.h5' % (horizon_i + 1))
-            df_pred.to_hdf(filename, 'results')
-        print('Predictions saved as data/results/dcrnn_seq2seq_prediction_[1-12].h5...')
+        outputs = supervisor.test_and_write_result(sess, config['train']['global_step'])
+        np.savez_compressed(args.output_filename, **outputs)
+        print('Predictions saved as {}.'.format(args.output_filename))
 
 
 if __name__ == '__main__':
     sys.path.append(os.getcwd())
     parser = argparse.ArgumentParser()
-    parser.add_argument('--traffic_df_filename', default='data/df_highway_2012_4mon_sample.h5',
-                        type=str, help='Traffic data file.')
     parser.add_argument('--use_cpu_only', default=False, type=str, help='Whether to run tensorflow on cpu.')
-    parser.add_argument('--config_filename', default=None, type=str, help='Config file for pretrained model.')
+    parser.add_argument('--config_filename', default='data/model/pretrained/config.yaml', type=str,
+                        help='Config file for pretrained model.')
+    parser.add_argument('--output_filename', default='data/dcrnn_predictions.npz')
     args = parser.parse_args()
     run_dcrnn(args)
