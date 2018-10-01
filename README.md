@@ -50,7 +50,7 @@ Each epoch takes about 5min with a single GTX 1080 Ti.
  supports sensor ids in Los Angeles (see `data/sensor_graph/sensor_info_201206.csv`).
 
 ```bash
-python gen_adj_mx.py  --sensor_ids_filename=data/sensor_graph/graph_sensor_ids.txt --normalized_k=0.1\
+python -m scripts.gen_adj_mx.py  --sensor_ids_filename=data/sensor_graph/graph_sensor_ids.txt --normalized_k=0.1\
     --output_pkl_filename=data/sensor_graph/adj_mx.pkl
 ```
 
