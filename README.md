@@ -43,7 +43,7 @@ The generated prediction of DCRNN is in `data/results/dcrnn_predictions_[1-12].h
 ```bash
 python dcrnn_train.py --config_filename=data/model/dcrnn_config.yaml
 ```
-Each epoch takes about 5min with a single GTX 1080 Ti. There is a chance that train/val loss will explode,  gradient explosion, 
+Each epoch takes about 5min with a single GTX 1080 Ti.
 
 ## Graph Construction
  As the currently implementation is based on pre-calculated road network distances between sensors, it currently only
