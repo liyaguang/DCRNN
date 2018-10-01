@@ -51,26 +51,11 @@ class DCRNNSupervisor(object):
                                                batch_size=self._data_kwargs['batch_size'],
                                                adj_mx=adj_mx, **self._model_kwargs)
 
-        with tf.name_scope('Val'):
-            with tf.variable_scope('DCRNN', reuse=True):
-                self._val_model = DCRNNModel(is_training=False, scaler=scaler,
-                                             batch_size=self._data_kwargs['batch_size'],
-                                             adj_mx=adj_mx, **self._model_kwargs)
-
         with tf.name_scope('Test'):
             with tf.variable_scope('DCRNN', reuse=True):
                 self._test_model = DCRNNModel(is_training=False, scaler=scaler,
                                               batch_size=self._data_kwargs['test_batch_size'],
                                               adj_mx=adj_mx, **self._model_kwargs)
-
-        # Calculate loss
-        output_dim = self._model_kwargs.get('output_dim')
-        preds = self._train_model.outputs
-        labels = self._train_model.labels[..., :output_dim]
-
-        null_val = 0.
-        self._loss_fn = masked_mae_loss(scaler, null_val)
-        self._train_loss = self._loss_fn(preds=preds, labels=labels)
 
         # Learning rate.
         self._lr = tf.get_variable('learning_rate', shape=(), initializer=tf.constant_initializer(0.01),
@@ -86,6 +71,15 @@ class DCRNNSupervisor(object):
             optimizer = tf.train.GradientDescentOptimizer(self._lr, )
         elif optimizer_name == 'amsgrad':
             optimizer = AMSGrad(self._lr, epsilon=epsilon)
+
+        # Calculate loss
+        output_dim = self._model_kwargs.get('output_dim')
+        preds = self._train_model.outputs
+        labels = self._train_model.labels[..., :output_dim]
+
+        null_val = 0.
+        self._loss_fn = masked_mae_loss(scaler, null_val)
+        self._train_loss = self._loss_fn(preds=preds, labels=labels)
 
         tvars = tf.trainable_variables()
         grads = tf.gradients(self._train_loss, tvars)
@@ -141,7 +135,7 @@ class DCRNNSupervisor(object):
             data['x_' + category][..., 0] = scaler.transform(data['x_' + category][..., 0])
             data['y_' + category][..., 0] = scaler.transform(data['y_' + category][..., 0])
         data['train_loader'] = DataLoader(data['x_train'], data['y_train'], kwargs['batch_size'], shuffle=True)
-        data['val_loader'] = DataLoader(data['x_val'], data['y_val'], kwargs['val_batch_size'], shuffle=False)
+        data['val_loader'] = DataLoader(data['x_val'], data['y_val'], kwargs['test_batch_size'], shuffle=False)
         data['test_loader'] = DataLoader(data['x_test'], data['y_test'], kwargs['test_batch_size'], shuffle=False)
         data['scaler'] = scaler
 
@@ -242,7 +236,7 @@ class DCRNNSupervisor(object):
 
             global_step = sess.run(tf.train.get_or_create_global_step())
             # Compute validation error.
-            val_results = self.run_epoch_generator(sess, self._val_model,
+            val_results = self.run_epoch_generator(sess, self._test_model,
                                                    self._data['val_loader'].get_iterator(),
                                                    training=False)
             val_loss, val_mae = val_results['loss'], val_results['mae']
