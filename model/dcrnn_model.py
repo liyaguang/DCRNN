@@ -6,36 +6,41 @@ import tensorflow as tf
 
 from tensorflow.contrib import legacy_seq2seq
 
-from lib.metrics import masked_mse_loss, masked_mae_loss, masked_rmse_loss
+from lib.metrics import masked_mae_loss
 from model.dcrnn_cell import DCGRUCell
-from model.tf_model import TFModel
 
 
-class DCRNNModel(TFModel):
-    def __init__(self, is_training, config, scaler=None, adj_mx=None):
-        super(DCRNNModel, self).__init__(config, scaler=scaler)
-        batch_size = int(config.get('batch_size'))
-        max_diffusion_step = int(config.get('max_diffusion_step', 2))
-        cl_decay_steps = int(config.get('cl_decay_steps', 1000))
-        filter_type = config.get('filter_type', 'laplacian')
-        horizon = int(config.get('horizon', 1))
-        input_dim = int(config.get('input_dim', 1))
-        loss_func = config.get('loss_func', 'MSE')
-        max_grad_norm = float(config.get('max_grad_norm', 5.0))
-        num_nodes = int(config.get('num_nodes', 1))
-        num_rnn_layers = int(config.get('num_rnn_layers', 1))
-        output_dim = int(config.get('output_dim', 1))
-        rnn_units = int(config.get('rnn_units'))
-        seq_len = int(config.get('seq_len'))
-        use_curriculum_learning = bool(config.get('use_curriculum_learning', False))
+class DCRNNModel(object):
+    def __init__(self, is_training, batch_size, scaler, adj_mx, **model_kwargs):
+        # Scaler for data normalization.
+        self._scaler = scaler
+
+        # Train and loss
+        self._loss = None
+        self._mae = None
+        self._train_op = None
+
+        max_diffusion_step = int(model_kwargs.get('max_diffusion_step', 2))
+        cl_decay_steps = int(model_kwargs.get('cl_decay_steps', 1000))
+        filter_type = model_kwargs.get('filter_type', 'laplacian')
+        horizon = int(model_kwargs.get('horizon', 1))
+        max_grad_norm = float(model_kwargs.get('max_grad_norm', 5.0))
+        num_nodes = int(model_kwargs.get('num_nodes', 1))
+        num_rnn_layers = int(model_kwargs.get('num_rnn_layers', 1))
+        rnn_units = int(model_kwargs.get('rnn_units'))
+        seq_len = int(model_kwargs.get('seq_len'))
+        use_curriculum_learning = bool(model_kwargs.get('use_curriculum_learning', False))
+        input_dim = int(model_kwargs.get('input_dim', 1))
+        output_dim = int(model_kwargs.get('output_dim', 1))
         aux_dim = input_dim - output_dim
-        # assert input_dim == output_dim, 'input_dim: %d != output_dim: %d' % (input_dim, output_dim)
+
         # Input (batch_size, timesteps, num_sensor, input_dim)
         self._inputs = tf.placeholder(tf.float32, shape=(batch_size, seq_len, num_nodes, input_dim), name='inputs')
         # Labels: (batch_size, timesteps, num_sensor, input_dim), same format with input except the temporal dimension.
         self._labels = tf.placeholder(tf.float32, shape=(batch_size, horizon, num_nodes, input_dim), name='labels')
 
-        GO_SYMBOL = tf.zeros(shape=(batch_size, num_nodes * input_dim))
+        # GO_SYMBOL = tf.zeros(shape=(batch_size, num_nodes * input_dim))
+        GO_SYMBOL = tf.zeros(shape=(batch_size, num_nodes * output_dim))
 
         cell = DCGRUCell(rnn_units, adj_mx, max_diffusion_step=max_diffusion_step, num_nodes=num_nodes,
                          filter_type=filter_type)
@@ -57,7 +62,7 @@ class DCRNNModel(TFModel):
                 aux_info.insert(0, None)
             labels.insert(0, GO_SYMBOL)
 
-            def loop_function(prev, i):
+            def _loop_function(prev, i):
                 if is_training:
                     # Return either the model's prediction or the previous ground truth in training.
                     if use_curriculum_learning:
@@ -69,7 +74,7 @@ class DCRNNModel(TFModel):
                 else:
                     # Return the prediction of the model in testing.
                     result = prev
-                if aux_dim > 0:
+                if False and aux_dim > 0:
                     result = tf.reshape(result, (batch_size, num_nodes, output_dim))
                     result = tf.concat([result, aux_info[i]], axis=-1)
                     result = tf.reshape(result, (batch_size, num_nodes * input_dim))
@@ -77,34 +82,11 @@ class DCRNNModel(TFModel):
 
             _, enc_state = tf.contrib.rnn.static_rnn(encoding_cells, inputs, dtype=tf.float32)
             outputs, final_state = legacy_seq2seq.rnn_decoder(labels, enc_state, decoding_cells,
-                                                              loop_function=loop_function)
+                                                              loop_function=_loop_function)
 
         # Project the output to output_dim.
         outputs = tf.stack(outputs[:-1], axis=1)
         self._outputs = tf.reshape(outputs, (batch_size, horizon, num_nodes, output_dim), name='outputs')
-
-        # preds = self._outputs[..., 0]
-        preds = self._outputs
-        labels = self._labels[..., :output_dim]
-
-        null_val = config.get('null_val', 0.)
-        self._mae = masked_mae_loss(self._scaler, null_val)(preds=preds, labels=labels)
-
-        if loss_func == 'MSE':
-            self._loss = masked_mse_loss(self._scaler, null_val)(preds=preds, labels=labels)
-        elif loss_func == 'MAE':
-            self._loss = masked_mae_loss(self._scaler, null_val)(preds=preds, labels=labels)
-        elif loss_func == 'RMSE':
-            self._loss = masked_rmse_loss(self._scaler, null_val)(preds=preds, labels=labels)
-        else:
-            self._loss = masked_mse_loss(self._scaler, null_val)(preds=preds, labels=labels)
-        if is_training:
-            optimizer = tf.train.AdamOptimizer(self._lr)
-            tvars = tf.trainable_variables()
-            grads = tf.gradients(self._loss, tvars)
-            grads, _ = tf.clip_by_global_norm(grads, max_grad_norm)
-            self._train_op = optimizer.apply_gradients(zip(grads, tvars), global_step=global_step, name='train_op')
-
         self._merged = tf.summary.merge_all()
 
     @staticmethod
@@ -116,3 +98,27 @@ class DCRNNModel(TFModel):
         :return:
         """
         return tf.cast(k / (k + tf.exp(global_step / k)), tf.float32)
+
+    @property
+    def inputs(self):
+        return self._inputs
+
+    @property
+    def labels(self):
+        return self._labels
+
+    @property
+    def loss(self):
+        return self._loss
+
+    @property
+    def mae(self):
+        return self._mae
+
+    @property
+    def merged(self):
+        return self._merged
+
+    @property
+    def outputs(self):
+        return self._outputs
