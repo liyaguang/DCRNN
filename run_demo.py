@@ -20,8 +20,8 @@ def run_dcrnn(args):
     _, _, adj_mx = load_graph_data(graph_pkl_filename)
     with tf.Session(config=tf_config) as sess:
         supervisor = DCRNNSupervisor(adj_mx=adj_mx, **config)
-        supervisor.restore(sess, config=config)
-        outputs = supervisor.test_and_write_result(sess, config['train']['global_step'])
+        supervisor.load(sess, config['train']['model_filename'])
+        outputs = supervisor.evaluate(sess)
         np.savez_compressed(args.output_filename, **outputs)
         print('Predictions saved as {}.'.format(args.output_filename))
 

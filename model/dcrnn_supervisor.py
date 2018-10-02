@@ -12,7 +12,6 @@ import yaml
 from lib import utils, metrics
 from lib.AMSGrad import AMSGrad
 from lib.metrics import masked_mae_loss
-from lib.utils import StandardScaler, DataLoader
 
 from model.dcrnn_model import DCRNNModel
 
@@ -31,20 +30,19 @@ class DCRNNSupervisor(object):
 
         # logging.
         self._log_dir = self._get_log_dir(kwargs)
-        self._logger = utils.get_logger(self._log_dir, __name__, 'info.log')
+        log_level = self._kwargs.get('log_level', 'INFO')
+        self._logger = utils.get_logger(self._log_dir, __name__, 'info.log', level=log_level)
         self._writer = tf.summary.FileWriter(self._log_dir)
         self._logger.info(kwargs)
 
         # Data preparation
-        self._data = self._prepare_data(**self._data_kwargs)
+        self._data = utils.load_dataset(**self._data_kwargs)
         for k, v in self._data.items():
             if hasattr(v, 'shape'):
                 self._logger.info((k, v.shape))
 
         # Build models.
         scaler = self._data['scaler']
-
-        self._epoch = 0
         with tf.name_scope('Train'):
             with tf.variable_scope('DCRNN', reuse=False):
                 self._train_model = DCRNNModel(is_training=True, scaler=scaler,
@@ -88,11 +86,15 @@ class DCRNNSupervisor(object):
         global_step = tf.train.get_or_create_global_step()
         self._train_op = optimizer.apply_gradients(zip(grads, tvars), global_step=global_step, name='train_op')
 
+        max_to_keep = self._train_kwargs.get('max_to_keep', 100)
+        self._epoch = 0
+        self._saver = tf.train.Saver(tf.global_variables(), max_to_keep=max_to_keep)
+
         # Log model statistics.
         total_trainable_parameter = utils.get_total_trainable_parameter_size()
-        self._logger.info('Total number of trainable parameters: %d' % total_trainable_parameter)
+        self._logger.info('Total number of trainable parameters: {:d}'.format(total_trainable_parameter))
         for var in tf.global_variables():
-            self._logger.info('%s, %s' % (var.name, var.get_shape()))
+            self._logger.debug('{}, {}'.format(var.name, var.get_shape()))
 
     @staticmethod
     def _get_log_dir(kwargs):
@@ -121,25 +123,6 @@ class DCRNNSupervisor(object):
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
         return log_dir
-
-    @staticmethod
-    def _prepare_data(dataset_dir, **kwargs):
-        data = {}
-        for category in ['train', 'val', 'test']:
-            cat_data = np.load(os.path.join(dataset_dir, category + '.npz'))
-            data['x_' + category] = cat_data['x']
-            data['y_' + category] = cat_data['y']
-        scaler = StandardScaler(mean=data['x_train'][..., 0].mean(), std=data['x_train'][..., 0].std())
-        # Data format
-        for category in ['train', 'val', 'test']:
-            data['x_' + category][..., 0] = scaler.transform(data['x_' + category][..., 0])
-            data['y_' + category][..., 0] = scaler.transform(data['y_' + category][..., 0])
-        data['train_loader'] = DataLoader(data['x_train'], data['y_train'], kwargs['batch_size'], shuffle=True)
-        data['val_loader'] = DataLoader(data['x_val'], data['y_val'], kwargs['test_batch_size'], shuffle=False)
-        data['test_loader'] = DataLoader(data['x_test'], data['y_test'], kwargs['test_batch_size'], shuffle=False)
-        data['scaler'] = scaler
-
-        return data
 
     def run_epoch_generator(self, sess, model, data_generator, return_output=False, training=False, writer=None):
         losses = []
@@ -239,7 +222,7 @@ class DCRNNSupervisor(object):
             val_results = self.run_epoch_generator(sess, self._test_model,
                                                    self._data['val_loader'].get_iterator(),
                                                    training=False)
-            val_loss, val_mae = val_results['loss'], val_results['mae']
+            val_loss, val_mae = np.asscalar(val_results['loss']), np.asscalar(val_results['mae'])
 
             utils.add_simple_summary(self._writer,
                                      ['loss/train_loss', 'metric/train_mae', 'loss/val_loss', 'metric/val_mae'],
@@ -249,11 +232,11 @@ class DCRNNSupervisor(object):
                 self._epoch, epochs, global_step, train_mae, val_mae, new_lr, (end_time - start_time))
             self._logger.info(message)
             if self._epoch % test_every_n_epochs == test_every_n_epochs - 1:
-                self.test_and_write_result(sess, global_step)
+                self.evaluate(sess)
             if val_loss <= min_val_loss:
                 wait = 0
                 if save_model > 0:
-                    model_filename = self.save_model(sess, saver, val_loss)
+                    model_filename = self.save(sess, val_loss)
                 self._logger.info(
                     'Val loss decrease from %.4f to %.4f, saving to %s' % (min_val_loss, val_loss, model_filename))
                 min_val_loss = val_loss
@@ -270,7 +253,8 @@ class DCRNNSupervisor(object):
             sys.stdout.flush()
         return np.min(history)
 
-    def test_and_write_result(self, sess, global_step, **kwargs):
+    def evaluate(self, sess, **kwargs):
+        global_step = sess.run(tf.train.get_or_create_global_step())
         test_results = self.run_epoch_generator(sess, self._test_model,
                                                 self._data['test_loader'].get_iterator(),
                                                 return_output=True,
@@ -285,12 +269,10 @@ class DCRNNSupervisor(object):
         predictions = []
         y_truths = []
         for horizon_i in range(self._data['y_test'].shape[1]):
-            y_truth = self._data['y_test'][:, horizon_i, :, 0]
-            y_truth = scaler.inverse_transform(y_truth)
+            y_truth = scaler.inverse_transform(self._data['y_test'][:, horizon_i, :, 0])
             y_truths.append(y_truth)
 
-            y_pred = y_preds[:y_truth.shape[0], horizon_i, :, 0]
-            y_pred = scaler.inverse_transform(y_pred)
+            y_pred = scaler.inverse_transform(y_preds[:y_truth.shape[0], horizon_i, :, 0])
             predictions.append(y_pred)
 
             mae = metrics.masked_mae_np(y_pred, y_truth, null_val=0)
@@ -312,29 +294,25 @@ class DCRNNSupervisor(object):
         }
         return outputs
 
-    @staticmethod
-    def restore(sess, config):
+    def load(self, sess, model_filename):
         """
         Restore from saved model.
         :param sess:
-        :param config:
+        :param model_filename:
         :return:
         """
-        model_filename = config['train'].get('model_filename')
-        max_to_keep = config['train'].get('max_to_keep', 100)
-        saver = tf.train.Saver(tf.global_variables(), max_to_keep=max_to_keep)
-        saver.restore(sess, model_filename)
+        self._saver.restore(sess, model_filename)
 
-    def save_model(self, sess, saver, val_loss):
-        config_filename = 'config_{}.yaml'.format(self._epoch)
+    def save(self, sess, val_loss):
         config = dict(self._kwargs)
         global_step = np.asscalar(sess.run(tf.train.get_or_create_global_step()))
+        prefix = os.path.join(self._log_dir, 'models-{:.4f}'.format(val_loss))
         config['train']['epoch'] = self._epoch
         config['train']['global_step'] = global_step
         config['train']['log_dir'] = self._log_dir
-        config['train']['model_filename'] = saver.save(sess,
-                                                       os.path.join(self._log_dir, 'models-{:.4f}'.format(val_loss)),
-                                                       global_step=global_step, write_meta_graph=False)
+        config['train']['model_filename'] = self._saver.save(sess, prefix, global_step=global_step,
+                                                             write_meta_graph=False)
+        config_filename = 'config_{}.yaml'.format(self._epoch)
         with open(os.path.join(self._log_dir, config_filename), 'w') as f:
             yaml.dump(config, f, default_flow_style=False)
         return config['train']['model_filename']
