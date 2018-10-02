@@ -145,9 +145,9 @@ def config_logging(log_dir, log_filename='info.log', level=logging.INFO):
     logging.basicConfig(handlers=[file_handler, console_handler], level=level)
 
 
-def get_logger(log_dir, name, log_filename='info.log'):
+def get_logger(log_dir, name, log_filename='info.log', level=logging.INFO):
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(level)
     # Add file handler and stdout handler
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     file_handler = logging.FileHandler(os.path.join(log_dir, log_filename))
@@ -173,6 +173,25 @@ def get_total_trainable_parameter_size():
         # shape is an array of tf.Dimension
         total_parameters += np.product([x.value for x in variable.get_shape()])
     return total_parameters
+
+
+def load_dataset(dataset_dir, batch_size, test_batch_size=None, **kwargs):
+    data = {}
+    for category in ['train', 'val', 'test']:
+        cat_data = np.load(os.path.join(dataset_dir, category + '.npz'))
+        data['x_' + category] = cat_data['x']
+        data['y_' + category] = cat_data['y']
+    scaler = StandardScaler(mean=data['x_train'][..., 0].mean(), std=data['x_train'][..., 0].std())
+    # Data format
+    for category in ['train', 'val', 'test']:
+        data['x_' + category][..., 0] = scaler.transform(data['x_' + category][..., 0])
+        data['y_' + category][..., 0] = scaler.transform(data['y_' + category][..., 0])
+    data['train_loader'] = DataLoader(data['x_train'], data['y_train'], batch_size, shuffle=True)
+    data['val_loader'] = DataLoader(data['x_val'], data['y_val'], test_batch_size, shuffle=False)
+    data['test_loader'] = DataLoader(data['x_test'], data['y_test'], test_batch_size, shuffle=False)
+    data['scaler'] = scaler
+
+    return data
 
 
 def load_graph_data(pkl_filename):

@@ -1,5 +1,6 @@
 ---
 base_dir: data/model
+log_level: INFO
 data:
   batch_size: 64
   dataset_dir: data/METR-LA

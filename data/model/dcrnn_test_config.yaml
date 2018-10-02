@@ -1,5 +1,6 @@
 ---
 base_dir: data/model
+log_level: INFO
 data:
   batch_size: 64
   dataset_dir: data/METR-LA
@@ -14,11 +15,10 @@ model:
   input_dim: 2
   l1_decay: 0
   max_diffusion_step: 2
-  max_grad_norm: 5
   num_nodes: 207
   num_rnn_layers: 2
   output_dim: 1
-  rnn_units: 64
+  rnn_units: 16
   seq_len: 12
   use_curriculum_learning: true
 
@@ -27,10 +27,13 @@ train:
   dropout: 0
   epoch: 0
   epochs: 100
+  epsilon: 1.0e-3
   global_step: 0
   lr_decay_ratio: 0.1
-  steps: [20, 30, 40, 50]
+  max_grad_norm: 5
   max_to_keep: 100
   min_learning_rate: 2.0e-06
+  optimizer: adam
   patience: 50
+  steps: [20, 30, 40, 50]
   test_every_n_epochs: 10
