@@ -20,7 +20,7 @@ pip install -r requirements.txt
 ```
 
 ## Data Preparation
-The traffic data file for Los Angeles, i.e., `df_highway_2012_4mon_sample.h5`, is available [here](https://drive.google.com/open?id=1tjf5aXCgUoimvADyxKqb-YUlxP8O46pb), and should be
+The traffic data file for Los Angeles, i.e., `df_highway_2012_4mon_sample.h5`, is available at [Google Drive](https://drive.google.com/open?id=1tjf5aXCgUoimvADyxKqb-YUlxP8O46pb) or [Baidu Yun](https://pan.baidu.com/s/1rsCq38a9SRyFO1F68tUscA), and should be
 put into the `data/METR-LA` folder.
 Besides, the locations of sensors are available at [data/sensor_graph/graph_sensor_locations.csv](https://github.com/liyaguang/DCRNN/blob/master/data/sensor_graph/graph_sensor_locations.csv).
 ```bash
