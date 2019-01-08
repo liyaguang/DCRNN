@@ -20,10 +20,11 @@ pip install -r requirements.txt
 ```
 
 ## Data Preparation
-The traffic data files for Los Angeles and the Bay Area, i.e., `metr-la.h5` and `pems-bay.h5`, are available at [Google Drive](https://drive.google.com/open?id=10FOTa6HXPqX8Pf5WRoRwcFnW9BrNZEIX) or [Baidu Yun](hbttps://pan.baidu.com/s/14Yy9isAIZYdU__OYEQGa_g), and should be
+The traffic data files for Los Angeles and the Bay Area, i.e., `metr-la.h5` and `pems-bay.h5`, are available at [Google Drive](https://drive.google.com/open?id=10FOTa6HXPqX8Pf5WRoRwcFnW9BrNZEIX) or [Baidu Yun](https://pan.baidu.com/s/14Yy9isAIZYdU__OYEQGa_g), and should be
 put into the `data/` folder.
 Besides, the locations of sensors Los Angeles are available at [data/sensor_graph/graph_sensor_locations.csv](https://github.com/liyaguang/DCRNN/blob/master/data/sensor_graph/graph_sensor_locations.csv).
 ```bash
+# Create data directories
 mkdir -p data/{METR-LA,PEMS-BAY}
 
 # METR-LA
@@ -51,7 +52,9 @@ python dcrnn_train.py --config_filename=data/model/dcrnn_la.yaml
 # PEMS-BAY
 python dcrnn_train.py --config_filename=data/model/dcrnn_bay.yaml
 ```
-Each epoch takes about 5min or 10 min on a single GTX 1080 Ti for METR-LA or PEMS-BAY respectively.
+Each epoch takes about 5min or 10 min on a single GTX 1080 Ti for METR-LA or PEMS-BAY respectively. 
+
+There is a chance that the training loss will explode, the temporary workaround is to restart from the last saved model before the explosion, or to decrease the learning rate earlier in the learning rate schedule. 
 
 ## Graph Construction
  As the currently implementation is based on pre-calculated road network distances between sensors, it currently only
