@@ -20,28 +20,38 @@ pip install -r requirements.txt
 ```
 
 ## Data Preparation
-The traffic data file for Los Angeles, i.e., `df_highway_2012_4mon_sample.h5`, is available at [Google Drive](https://drive.google.com/open?id=1tjf5aXCgUoimvADyxKqb-YUlxP8O46pb) or [Baidu Yun](https://pan.baidu.com/s/1rsCq38a9SRyFO1F68tUscA), and should be
-put into the `data/METR-LA` folder.
-Besides, the locations of sensors are available at [data/sensor_graph/graph_sensor_locations.csv](https://github.com/liyaguang/DCRNN/blob/master/data/sensor_graph/graph_sensor_locations.csv).
+The traffic data files for Los Angeles and the Bay Area, i.e., `metr-la.h5` and `pems-bay.h5`, are available at [Google Drive](https://drive.google.com/open?id=10FOTa6HXPqX8Pf5WRoRwcFnW9BrNZEIX) or [Baidu Yun](hbttps://pan.baidu.com/s/14Yy9isAIZYdU__OYEQGa_g), and should be
+put into the `data/` folder.
+Besides, the locations of sensors Los Angeles are available at [data/sensor_graph/graph_sensor_locations.csv](https://github.com/liyaguang/DCRNN/blob/master/data/sensor_graph/graph_sensor_locations.csv).
 ```bash
-python -m scripts.generate_training_data --output_dir=data/METR-LA
+mkdir -p data/{METR-LA,PEMS-BAY}
+
+# METR-LA
+python -m scripts.generate_training_data --output_dir=data/METR-LA --traffic_df_filename=data/metr-la.h5
+
+# PEMS-BAY
+python -m scripts.generate_training_data --output_dir=data/PEMS-BAY --traffic_df_filename=data/pems-bay.h5
 ```
-The generated train/val/test dataset will be saved at `data/METR-LA/{train,val,test}.npz`.
+The generated train/val/test dataset will be saved at `data/{METR-LA,PEMS-BAY}/{train,val,test}.npz`.
 
 
-## Run the Pre-trained Model
+## Run the Pre-trained Model on METR-LA
 
 ```bash
 python run_demo.py
 ```
-The generated prediction of DCRNN is in `data/results/dcrnn_predictions_[1-12].h5`.
+The generated prediction of DCRNN of METR-LA is in `data/results/dcrnn_predictions_[1-12].h5`.
 
 
 ## Model Training
 ```bash
-python dcrnn_train.py --config_filename=data/model/dcrnn_config.yaml
+# METR-LA
+python dcrnn_train.py --config_filename=data/model/dcrnn_la.yaml
+
+# PEMS-BAY
+python dcrnn_train.py --config_filename=data/model/dcrnn_bay.yaml
 ```
-Each epoch takes about 5min with a single GTX 1080 Ti.
+Each epoch takes about 5min or 10 min on a single GTX 1080 Ti for METR-LA or PEMS-BAY respectively.
 
 ## Graph Construction
  As the currently implementation is based on pre-calculated road network distances between sensors, it currently only
