@@ -39,9 +39,13 @@ The generated train/val/test dataset will be saved at `data/{METR-LA,PEMS-BAY}/{
 ## Run the Pre-trained Model on METR-LA
 
 ```bash
-python run_demo.py
+# METR-LA
+python run_demo.py --config_filename=data/model/pretrained/METR-LA/config.yaml
+
+# PEMS-BAY
+python run_demo.py --config_filename=data/model/pretrained/PEMS-BAY/config.yaml
 ```
-The generated prediction of DCRNN of METR-LA is in `data/results/dcrnn_predictions_[1-12].h5`.
+The generated prediction of DCRNN is in `data/results/dcrnn_predictions`.
 
 
 ## Model Training
