@@ -32,7 +32,6 @@ class DCRNNModel(object):
         use_curriculum_learning = bool(model_kwargs.get('use_curriculum_learning', False))
         input_dim = int(model_kwargs.get('input_dim', 1))
         output_dim = int(model_kwargs.get('output_dim', 1))
-        aux_dim = input_dim - output_dim
 
         # Input (batch_size, timesteps, num_sensor, input_dim)
         self._inputs = tf.placeholder(tf.float32, shape=(batch_size, seq_len, num_nodes, input_dim), name='inputs')
@@ -57,9 +56,6 @@ class DCRNNModel(object):
             inputs = tf.unstack(tf.reshape(self._inputs, (batch_size, seq_len, num_nodes * input_dim)), axis=1)
             labels = tf.unstack(
                 tf.reshape(self._labels[..., :output_dim], (batch_size, horizon, num_nodes * output_dim)), axis=1)
-            if aux_dim > 0:
-                aux_info = tf.unstack(self._labels[..., output_dim:], axis=1)
-                aux_info.insert(0, None)
             labels.insert(0, GO_SYMBOL)
 
             def _loop_function(prev, i):
@@ -74,10 +70,6 @@ class DCRNNModel(object):
                 else:
                     # Return the prediction of the model in testing.
                     result = prev
-                if False and aux_dim > 0:
-                    result = tf.reshape(result, (batch_size, num_nodes, output_dim))
-                    result = tf.concat([result, aux_info[i]], axis=-1)
-                    result = tf.reshape(result, (batch_size, num_nodes * input_dim))
                 return result
 
             _, enc_state = tf.contrib.rnn.static_rnn(encoding_cells, inputs, dtype=tf.float32)
