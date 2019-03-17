@@ -22,7 +22,8 @@ pip install -r requirements.txt
 ## Data Preparation
 The traffic data files for Los Angeles (METR-LA) and the Bay Area (PEMS-BAY), i.e., `metr-la.h5` and `pems-bay.h5`, are available at [Google Drive](https://drive.google.com/open?id=10FOTa6HXPqX8Pf5WRoRwcFnW9BrNZEIX) or [Baidu Yun](https://pan.baidu.com/s/14Yy9isAIZYdU__OYEQGa_g), and should be
 put into the `data/` folder.
-Besides, the locations of sensors Los Angeles are available at [data/sensor_graph/graph_sensor_locations.csv](https://github.com/liyaguang/DCRNN/blob/master/data/sensor_graph/graph_sensor_locations.csv).
+The `*.h5` files store the data in `panads.DataFrame` using the `HDF5` file format. Here is an article about [Using HDF5 with Python](https://medium.com/@jerilkuriakose/using-hdf5-with-python-6c5242d08773).
+
 ```bash
 # Create data directories
 mkdir -p data/{METR-LA,PEMS-BAY}
@@ -36,6 +37,7 @@ python -m scripts.generate_training_data --output_dir=data/PEMS-BAY --traffic_df
 The generated train/val/test dataset will be saved at `data/{METR-LA,PEMS-BAY}/{train,val,test}.npz`.
 
 
+The locations of sensors Los Angeles are available at [data/sensor_graph/graph_sensor_locations.csv](https://github.com/liyaguang/DCRNN/blob/master/data/sensor_graph/graph_sensor_locations.csv).
 ## Run the Pre-trained Model on METR-LA
 
 ```bash
