@@ -84,7 +84,7 @@ More details are being added ...
 
 ## Citation
 
-If you find this repository useful in your research, please cite the following paper:
+If you find this repository, e.g., the code and the datasets, useful in your research, please cite the following paper:
 ```
 @inproceedings{li2018dcrnn_traffic,
   title={Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting},
