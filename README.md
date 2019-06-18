@@ -10,8 +10,9 @@ Yaguang Li, Rose Yu, Cyrus Shahabi, Yan Liu, [Diffusion Convolutional Recurrent 
 - scipy>=0.19.0
 - numpy>=1.12.1
 - pandas>=0.19.2
-- tensorflow>=1.3.0
 - pyaml
+- statsmodels
+- tensorflow>=1.3.0
 
 
 Dependency can be installed using the following command:
@@ -79,6 +80,12 @@ Each epoch takes about 5min or 10 min on a single GTX 1080 Ti for METR-LA or PEM
 
 There is a chance that the training loss will explode, the temporary workaround is to restart from the last saved model before the explosion, or to decrease the learning rate earlier in the learning rate schedule. 
 
+
+## Eval baseline methods
+```bash
+# METR-LA
+python -m scripts.eval_baseline_methods --traffic_reading_filename=data/metr-la.h5
+```
 
 More details are being added ...
 
