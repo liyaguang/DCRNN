@@ -5,6 +5,7 @@
 This is a TensorFlow implementation of Diffusion Convolutional Recurrent Neural Network in the following paper: \
 Yaguang Li, Rose Yu, Cyrus Shahabi, Yan Liu, [Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting](https://arxiv.org/abs/1707.01926), ICLR 2018.
 
+The Pytorch implementaion of the model is available at [DCRNN-Pytorch](https://github.com/chnsh/DCRNN_PyTorch).
 
 ## Requirements
 - scipy>=0.19.0
