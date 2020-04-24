@@ -57,7 +57,7 @@ if __name__ == '__main__':
     with open(args.sensor_ids_filename) as f:
         sensor_ids = f.read().strip().split(',')
     distance_df = pd.read_csv(args.distances_filename, dtype={'from': 'str', 'to': 'str'})
-    _, sensor_id_to_ind, adj_mx = get_adjacency_matrix(distance_df, sensor_ids)
+    _, sensor_id_to_ind, adj_mx = get_adjacency_matrix(distance_df, sensor_ids, normalized_k)
     # Save to pickle file.
     with open(args.output_pkl_filename, 'wb') as f:
         pickle.dump([sensor_ids, sensor_id_to_ind, adj_mx], f, protocol=2)
