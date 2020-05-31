@@ -77,9 +77,11 @@ python dcrnn_train.py --config_filename=data/model/dcrnn_la.yaml
 # PEMS-BAY
 python dcrnn_train.py --config_filename=data/model/dcrnn_bay.yaml
 ```
-Each epoch takes about 5min or 10 min on a single GTX 1080 Ti for METR-LA or PEMS-BAY respectively. 
+Each epoch takes about 5min or 13 min on a single GTX 1080 Ti for METR-LA or PEMS-BAY respectively. 
 
-There is a chance that the training loss will explode, the temporary workaround is to restart from the last saved model before the explosion, or to decrease the learning rate earlier in the learning rate schedule. 
+Here are example tensorboard links for [DCRNN on METR-LA](https://tensorboard.dev/experiment/ijwg04waSOWQ2Pj4mZ3tAg), [DCRNN on PEMS-BAY](https://tensorboard.dev/experiment/QzJtnMfgQJCQ7vc7wNJjxg), including training details and metrics over time.
+
+Note that, there is a chance that the training loss will explode, the temporary workaround is to restart from the last saved model before the explosion, or to decrease the learning rate earlier in the learning rate schedule. 
 
 
 ## Eval baseline methods
