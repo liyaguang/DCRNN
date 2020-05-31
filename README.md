@@ -77,12 +77,20 @@ python dcrnn_train.py --config_filename=data/model/dcrnn_la.yaml
 # PEMS-BAY
 python dcrnn_train.py --config_filename=data/model/dcrnn_bay.yaml
 ```
-Each epoch takes about 5min or 13 min on a single GTX 1080 Ti for METR-LA or PEMS-BAY respectively. 
+Each epoch takes about 5min or 13 min on a single GTX 1080 Ti for METR-LA or PEMS-BAY respectively. Here are example tensorboard links for [DCRNN on METR-LA](https://tensorboard.dev/experiment/ijwg04waSOWQ2Pj4mZ3tAg), [DCRNN on PEMS-BAY](https://tensorboard.dev/experiment/QzJtnMfgQJCQ7vc7wNJjxg), including training details and metrics over time.
 
-Here are example tensorboard links for [DCRNN on METR-LA](https://tensorboard.dev/experiment/ijwg04waSOWQ2Pj4mZ3tAg), [DCRNN on PEMS-BAY](https://tensorboard.dev/experiment/QzJtnMfgQJCQ7vc7wNJjxg), including training details and metrics over time.
+The following table summarizes the performance of DCRNN on two dataset with regards to different metrics and horizons (numbers are better than those reported in the paper due to bug fix in commit [2e4b8c8](https://github.com/liyaguang/DCRNN/commit/2e4b8c868fd410a1fb4a469f0995de6616115e03)).
+
+| Dataset  | Metric | 5min  | 15min | 30min | 60min  |
+|----------|--------|-------|-------|-------|--------|
+| METR-LA  | MAE    | 2.18  | 2.67  | 3.08  | 3.56   |
+|          | MAPE   | 5.17% | 6.84% | 8.38% | 10.30% |
+|          | RMSE   | 3.77  | 5.17  | 6.3   | 7.52   |
+| PEMS-BAY | MAE    | 0.85  | 1.31  | 1.66  | 1.98   |
+|          | MAPE   | 1.63% | 2.74% | 3.76% | 4.74%  |
+|          | RMSE   | 1.54  | 2.76  | 3.78  | 4.62   |
 
 Note that, there is a chance that the training loss will explode, the temporary workaround is to restart from the last saved model before the explosion, or to decrease the learning rate earlier in the learning rate schedule. 
-
 
 ## Eval baseline methods
 ```bash
