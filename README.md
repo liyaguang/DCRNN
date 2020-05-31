@@ -70,6 +70,9 @@ The generated prediction of DCRNN is in `data/results/dcrnn_predictions`.
 
 
 ## Model Training
+
+Here are commands for training the model on `METR-LA` and `PEMS-BAY` respectively. 
+
 ```bash
 # METR-LA
 python dcrnn_train.py --config_filename=data/model/dcrnn_la.yaml
@@ -77,9 +80,13 @@ python dcrnn_train.py --config_filename=data/model/dcrnn_la.yaml
 # PEMS-BAY
 python dcrnn_train.py --config_filename=data/model/dcrnn_bay.yaml
 ```
-Each epoch takes about 5min or 13 min on a single GTX 1080 Ti for METR-LA or PEMS-BAY respectively. Here are example tensorboard links for [DCRNN on METR-LA](https://tensorboard.dev/experiment/ijwg04waSOWQ2Pj4mZ3tAg), [DCRNN on PEMS-BAY](https://tensorboard.dev/experiment/QzJtnMfgQJCQ7vc7wNJjxg), including training details and metrics over time.
+### Training details and tensorboard links
+With a single GTX 1080 Ti, each epoch takes around 5min for `METR-LA`, and 13 min for `PEMS-BAY` respectively. Here are example tensorboard links for [DCRNN on METR-LA](https://tensorboard.dev/experiment/ijwg04waSOWQ2Pj4mZ3tAg), [DCRNN on PEMS-BAY](https://tensorboard.dev/experiment/QzJtnMfgQJCQ7vc7wNJjxg), including training details and metrics over time.
 
-The following table summarizes the performance of DCRNN on two dataset with regards to different metrics and horizons (numbers are better than those reported in the paper due to bug fix in commit [2e4b8c8](https://github.com/liyaguang/DCRNN/commit/2e4b8c868fd410a1fb4a469f0995de6616115e03)).
+Note that, there is a chance of training loss explosion, one temporary workaround is to restart from the last saved model before the explosion, or to decrease the learning rate earlier in the learning rate schedule. 
+
+### Metric for different horizons and datasets
+The following table summarizes the performance of DCRNN on two dataset with regards to different metrics and horizons (numbers are better than those reported in the paper due to bug fix in commit [2e4b8c8](https://github.com/liyaguang/DCRNN/commit/2e4b8c868fd410a1fb4a469f0995de6616115e03) on Oct 1, 2018).
 
 | Dataset  | Metric | 5min  | 15min | 30min | 60min  |
 |----------|--------|-------|-------|-------|--------|
@@ -90,7 +97,6 @@ The following table summarizes the performance of DCRNN on two dataset with rega
 |          | MAPE   | 1.63% | 2.74% | 3.76% | 4.74%  |
 |          | RMSE   | 1.54  | 2.76  | 3.78  | 4.62   |
 
-Note that, there is a chance that the training loss will explode, the temporary workaround is to restart from the last saved model before the explosion, or to decrease the learning rate earlier in the learning rate schedule. 
 
 ## Eval baseline methods
 ```bash
