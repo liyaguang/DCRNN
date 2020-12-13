@@ -5,8 +5,6 @@
 This is a TensorFlow implementation of Diffusion Convolutional Recurrent Neural Network in the following paper: \
 Yaguang Li, Rose Yu, Cyrus Shahabi, Yan Liu, [Diffusion Convolutional Recurrent Neural Network: Data-Driven Traffic Forecasting](https://arxiv.org/abs/1707.01926), ICLR 2018.
 
-The Pytorch implementaion of the model is available at [DCRNN-Pytorch](https://github.com/chnsh/DCRNN_PyTorch).
-
 ## Requirements
 - scipy>=0.19.0
 - numpy>=1.12.1
@@ -111,6 +109,9 @@ More details are being added ...
 With graph partitioning, DCRNN has been successfully deployed to forecast the traffic of the entire California highway network with **11,160** traffic sensor locations simultaneously. The general idea is to partition the large highway network into a number of small networks, and trained them with a share-weight DCRNN simultaneously. The training process takes around 3 hours in a moderately sized GPU cluster, and the real-time inference can be run on traditional hardware such as CPUs.
 
 See the [paper](https://arxiv.org/pdf/1909.11197.pdf "GRAPH-PARTITIONING-BASED DIFFUSION CONVOLUTION RECURRENT NEURAL NETWORK FOR LARGE-SCALE TRAFFIC FORECASTING"), [slides](https://press3.mcs.anl.gov/atpesc/files/2019/08/ATPESC_2019_Track-8_11_8-9_435pm_Mallick-DCRNN_for_Traffic_Forecasting.pdf), and [video](https://www.youtube.com/watch?v=liJNNtJGTZU&list=PLGj2a3KTwhRapjzPcxSbo7FxcLOHkLcNt&index=10) by Tanwi Mallick et al. from Argonne National Laboratory for more information.
+
+## Third-party re-implementations
+The Pytorch implementaion by [chnsh@](https://github.com/chnsh/) is available at [DCRNN-Pytorch](https://github.com/chnsh/DCRNN_PyTorch).
 
 
 ## Citation
