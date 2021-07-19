@@ -112,7 +112,7 @@ See the [paper](https://arxiv.org/pdf/1909.11197.pdf "GRAPH-PARTITIONING-BASED D
 
 ## DCRNN Applications 
 In addition to vehicle traffic forecasting, DCRNN and its variants have been applied in many important domains, including:
-* Causal inference in brain networks. [S. Wein et al. A graph neural network framework for causal inference in brain networks. Scientific Reports, 2021](https://www.nature.com/articles/s41598-021-87411-8), GitHub [Repo](https://github.com/simonvino/DCRNN_brain_connectivity).
+* Neuroimaging: causal inference in brain networks. [S. Wein et al. A graph neural network framework for causal inference in brain networks. Scientific Reports, 2021](https://www.nature.com/articles/s41598-021-87411-8), GitHub [Repo](https://github.com/simonvino/DCRNN_brain_connectivity).
 * Air quality forecasting: [Y Lin et al. Exploiting spatiotemporal patterns for accurate air quality forecasting using deep learning. ACM SIGSPATIAL 2018](https://dl.acm.org/doi/10.1145/3274895.3274907).
 * Interenet traffic forecasting: [D. Andreoletti et al. Network traffic prediction based on diffusion convolutional recurrent neural networks, INFOCOM 2019](https://ieeexplore.ieee.org/document/8845132).
 
