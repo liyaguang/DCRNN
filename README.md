@@ -110,6 +110,12 @@ With graph partitioning, DCRNN has been successfully deployed to forecast the tr
 
 See the [paper](https://arxiv.org/pdf/1909.11197.pdf "GRAPH-PARTITIONING-BASED DIFFUSION CONVOLUTION RECURRENT NEURAL NETWORK FOR LARGE-SCALE TRAFFIC FORECASTING"), [slides](https://press3.mcs.anl.gov/atpesc/files/2019/08/ATPESC_2019_Track-8_11_8-9_435pm_Mallick-DCRNN_for_Traffic_Forecasting.pdf), and [video](https://www.youtube.com/watch?v=liJNNtJGTZU&list=PLGj2a3KTwhRapjzPcxSbo7FxcLOHkLcNt&index=10) by Tanwi Mallick et al. from Argonne National Laboratory for more information.
 
+## DCRNN Applications 
+In addition to vehicle traffic forecasting, DCRNN and its variants have been applied in many important domains, including:
+* Causal inference in brain networks. [S. Wein et al. A graph neural network framework for causal inference in brain networks. Scientific Reports, 2021](https://www.nature.com/articles/s41598-021-87411-8), GitHub [Repo](https://github.com/simonvino/DCRNN_brain_connectivity).
+* Air quality forecasting: [Y Lin et al. Exploiting spatiotemporal patterns for accurate air quality forecasting using deep learning. ACM SIGSPATIAL 2018](https://dl.acm.org/doi/10.1145/3274895.3274907).
+* Interenet traffic forecasting: [D. Andreoletti et al. Network traffic prediction based on diffusion convolutional recurrent neural networks, INFOCOM 2019](https://ieeexplore.ieee.org/document/8845132).
+
 ## Third-party re-implementations
 The Pytorch implementaion by [chnsh@](https://github.com/chnsh/) is available at [DCRNN-Pytorch](https://github.com/chnsh/DCRNN_PyTorch).
 
