@@ -24,7 +24,7 @@ pip install -r requirements.txt
 
 You can install the environment using conda.
 
-#### 1. Create an environment to install fairchem
+#### 1. Create an environment to install dcrnn
 
 a. GPU
 
